@@ -1,113 +1,90 @@
+use core::fmt;
 use std::{
-    error::Error,
     fs::File,
     io::{BufRead, BufReader},
 };
 
-fn read_file(filepath: &str) -> Result<(), Box<dyn std::error::Error>> {
-    // read file line by line
-    let file: File = File::open(filepath)?;
-    let reader: BufReader<File> = BufReader::new(file);
-    let mut v: Vec<String> = Vec::new();
-    let mut number_of_rows: i32 = 0;
-    let mut number_of_cols: i32 = 0;
 
-    for line in reader.lines() {
-        v.push(line?);
-        number_of_rows += 1;
+enum Cell {
+    Bomb,
+    Common(i32)
+}
+
+impl fmt::Display for MineSweeper {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for row in &self.grid {
+            write!(f, "{:?}\n", String::from_utf8(row.to_vec()).unwrap())?;
+        }
+        Ok(())
+    }
+}
+
+struct MineSweeper {
+    grid: Vec<Vec<u8>>
+}
+
+impl MineSweeper {
+    pub fn new(path: &str) -> Self {
+        let file: File = File::open(path).unwrap();
+        let reader: BufReader<File> = BufReader::new(file);
+        let mut grid: Vec<Vec<u8>> = Vec::new();
+
+        for line in reader.lines() {
+            grid.push(line.unwrap().into_bytes());
+        }
+
+        Self { grid }
     }
 
-    get_column_range(&v, &mut number_of_cols, number_of_rows);
+    pub fn mines_counting(&self) {
+        for i in 0..self.get_row_range() {
+            let mut r = Vec::new();
+            for j in 0..self.get_col_range() {
+                if !self.hay_bomba(i, j) {
+                    let amount_of_mines = self.get_close_mines(i, j);
+                    r.push(amount_of_mines.to_string());
+                } else {
+                    r.push("*".to_string());
+                }
+            }
+            println!("{:?}", r.concat());
+        }
+    }
 
-    println!("nro filas: {}", &number_of_rows);
-    println!("nro columnas: {}", &number_of_cols);
+    pub fn get_row_range(&self) -> usize {
+        self.grid.len()
+    }
 
-    let mut grid_raw: Vec<i32> = vec![0; (number_of_rows * number_of_cols).try_into().unwrap()];
-    let mut grid_base: Vec<_> = grid_raw
-        .as_mut_slice()
-        .chunks_mut(number_of_cols.try_into().unwrap())
-        .collect();
-    let grid = grid_base.as_mut_slice();
+    pub fn get_col_range(&self) -> usize {
+        self.grid[0].len()
+    }
 
-    setting_bombs(&v, grid);
+    fn hay_bomba(&self, indice_fila: usize, indice_columna: usize) -> bool {
+        self.grid[indice_fila][indice_columna] == '*' as u8
+    }
 
-    let fila: usize = number_of_rows.try_into().unwrap();
-    let col: usize = number_of_cols.try_into().unwrap();
+    fn get_close_mines(&self, i: usize, j:usize) -> i32 {
+        let mut counter = 0;
 
-    for i in 0..fila {
-        for j in 0..col {
-            if !hay_bomba(grid, i, j) {
-                let amount_of_mines = get_close_mines(&i, &j, grid);
-                grid[i][j] = amount_of_mines;
+        let fila_inicio: usize = if i <= 0 { 0 } else { i - 1 };
+        let fila_fin: usize = if i + 1 >= 4 { 4 - 1 } else { i + 1 };
+        let columna_inicio: usize = if j <= 0 { 0 } else { j - 1 };
+        let columna_fin: usize = if j + 1 >= 5 { 5 - 1 } else { j + 1 };
+    
+        for i in fila_inicio..=fila_fin {
+            for j in columna_inicio..=columna_fin {
+                if self.hay_bomba(i, j) {
+                    counter += 1;
+                }
             }
         }
+        counter
     }
-    println!("{:?}", map_grid(grid, fila, col));
-
-    Ok(())
-}
-
-fn hay_bomba(grid: &mut [&mut [i32]], indice_fila: usize, indice_columna: usize) -> bool {
-    grid[indice_fila][indice_columna] == -1
-}
-
-fn setting_bombs(v: &[String], grid: &mut [&mut [i32]]) {
-    for (row_index, element) in v.iter().enumerate() {
-        for (col_index, character) in element.chars().enumerate() {
-            if character == '*' {
-                grid[row_index][col_index] = -1;
-            }
-        }
-    }
-}
-
-fn map_grid(grid: &mut [&mut [i32]], fila: usize, col: usize) -> Vec<Vec<String>> {
-    let mut columna: Vec<Vec<String>> = Vec::new();
-    for grid_row in grid.iter().take(fila) {
-        let mut fila: Vec<String> = Vec::new();
-        for grid_element in grid_row.iter().take(col) {
-            if *grid_element == -1 {
-                fila.push("*".to_string());
-            } else {
-                fila.push(grid_element.to_string());
-            }
-        }
-        columna.push(fila);
-    }
-    columna
-}
-
-fn get_column_range(v: &Vec<String>, number_of_cols: &mut i32, number_of_rows: i32) {
-    for e in v {
-        for _ in e.chars().enumerate() {
-            *number_of_cols += 1;
-        }
-    }
-    *number_of_cols /= number_of_rows;
-}
-
-fn get_close_mines(fila: &usize, columna: &usize, grid: &mut [&mut [i32]]) -> i32 {
-    let mut conteo = 0;
-
-    let fila_inicio: usize = if fila <= &0 { 0 } else { fila - 1 };
-    let fila_fin: usize = if fila + 1 >= 4 { 4 - 1 } else { fila + 1 };
-    let columna_inicio: usize = if columna <= &0 { 0 } else { columna - 1 };
-    let columna_fin: usize = if columna + 1 >= 5 { 5 - 1 } else { columna + 1 };
-
-    for i in fila_inicio..=fila_fin {
-        for j in columna_inicio..=columna_fin {
-            if hay_bomba(grid, i, j) {
-                conteo += 1;
-            }
-        }
-    }
-    conteo
 }
 
 fn main() {
     let filepath = "./buscaminas.txt";
-    let _result: Result<(), Box<dyn Error>> = read_file(filepath);
-    // Los 0 van a representar que no toca ninguna bomba
-    // Los -1 van a representar cada bomba
-    // Despues podria mappear cada valor numerico al string correspondiente
+    let mine_sweeper = MineSweeper::new(filepath);
+    println!("{}", mine_sweeper);
+    mine_sweeper.mines_counting()
 }
