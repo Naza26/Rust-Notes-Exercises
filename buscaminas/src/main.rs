@@ -6,6 +6,6 @@ fn main() {
     let mine_sweeper: MineSweeper = MineSweeper::new(filepath);
     println!("Initial grid given file: ");
     println!("{}", mine_sweeper.get_current_grid_state());
-    println!("Grid filled in with near bombs: ");
-    println!("{}", mine_sweeper.mines_counting()); 
+    println!("Grid filled in with nearby bombs: ");
+    println!("{}", mine_sweeper.mines_counting());
 }

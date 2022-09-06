@@ -1,7 +1,5 @@
 use crate::grid::Grid;
 
-
-
 /// A cell from a grid is represented here.
 #[derive(Debug)]
 pub enum Cell {
@@ -33,7 +31,7 @@ impl MineSweeper {
     /// let mine_sweeper = MineSweeper::new("buscaminas.txt");
     /// ```
     pub fn new(path: &str) -> Self {
-        let grid: Grid = Grid::from_path(path); 
+        let grid: Grid = Grid::from_path(path);
 
         Self { grid }
     }
@@ -53,11 +51,11 @@ impl MineSweeper {
     pub fn mines_counting(&self) -> Grid {
         let mut raw_grid: Vec<Vec<Cell>> = Vec::new();
         for i in 0..self.row_range() {
-            let mut r:Vec<Cell> = Vec::new();
+            let mut r: Vec<Cell> = Vec::new();
             for j in 0..self.col_range() {
-                let cell = match self.grid.get_cell(i, j) {
+                let cell: Cell = match self.grid.get_cell(i, j) {
                     Cell::Bomb => Cell::Bomb,
-                    Cell::Common(_) => Cell::Common(self.get_close_mines(i, j))
+                    Cell::Common(_) => Cell::Common(self.get_close_mines(i, j)),
                 };
                 r.push(cell);
             }
@@ -104,7 +102,7 @@ impl MineSweeper {
     ///
     /// * `row_index` - An index representing the location of the row
     /// * `col_index` - An index representing the location of the column
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -117,7 +115,7 @@ impl MineSweeper {
     fn is_bomb(&self, row_index: usize, col_index: usize) -> bool {
         match self.grid.get_cell(row_index, col_index) {
             Cell::Bomb => true,
-            Cell::Common(_) => false
+            Cell::Common(_) => false,
         }
     }
 
@@ -127,7 +125,7 @@ impl MineSweeper {
     ///
     /// * `i` - An index representing the location of the row
     /// * `j` - An index representing the location of the column
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -165,7 +163,7 @@ impl MineSweeper {
 
     /// Returns an actual representation of the state of the grid
     ///
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -180,32 +178,35 @@ impl MineSweeper {
     }
 }
 
-
 #[cfg(test)]
 mod mind_sweeper_tests {
     use super::Cell;
     use super::MineSweeper;
 
-    #[test]
-    fn mine_sweping_gets_created_within_initial_grid() {
-        let filepath: &str = "./buscaminas.txt";
-        let mine_sweeper: MineSweeper = MineSweeper::new(filepath);
+    // lo pase a test de integracion
+    // #[test]
+    // fn mine_sweping_gets_created_within_initial_grid() {
+    //     let filepath: &str = "./buscaminas.txt";
+    //     let mine_sweeper: MineSweeper = MineSweeper::new(filepath);
 
-        let expected_grid: Vec<&str> = vec!["0","*","0","*","0","0","0","*","0","0","0","0","*","0","0","0","0","0","0","0"];
+    //     let expected_grid: Vec<&str> = vec![
+    //         "0", "*", "0", "*", "0", "0", "0", "*", "0", "0", "0", "0", "*", "0", "0", "0", "0",
+    //         "0", "0", "0",
+    //     ];
 
-        let current_grid = mine_sweeper.grid;
+    //     let current_grid = mine_sweeper.grid;
 
-        let flattened_curent_grid: Vec<String> = current_grid
-        .grid
-        .iter()
-        .flatten()
-        .map(|element| match element {
-            Cell::Bomb => "*".to_string(),
-            Cell::Common(value) => value.to_string()
-        })
-        .collect();
-        assert_eq!(expected_grid, flattened_curent_grid)
-    }
+    //     let flattened_curent_grid: Vec<String> = current_grid
+    //         .grid
+    //         .iter()
+    //         .flatten()
+    //         .map(|element| match element {
+    //             Cell::Bomb => "*".to_string(),
+    //             Cell::Common(value) => value.to_string(),
+    //         })
+    //         .collect();
+    //     assert_eq!(expected_grid, flattened_curent_grid)
+    // }
 
     #[test]
     fn mine_sweeper_can_get_row_range() {
@@ -249,24 +250,28 @@ mod mind_sweeper_tests {
         assert_eq!(amount_of_close_mines, 1);
     }
 
-    #[test]
-    fn mine_sweeper_can_count_all_near_mines() {
-        let filepath: &str = "./buscaminas.txt";
-        let mine_sweeper: MineSweeper = MineSweeper::new(filepath);
+    // lo mismo, lo pase a test de integracion
+    // #[test]
+    // fn mine_sweeper_can_count_all_near_mines() {
+    //     let filepath: &str = "./buscaminas.txt";
+    //     let mine_sweeper: MineSweeper = MineSweeper::new(filepath);
 
-        let expected_grid: Vec<&str> = vec!["1","*","3","*","1","1","3","*","3","1","0","2","*","2","0","0","1","1","1","0"];
+    //     let expected_grid: Vec<&str> = vec![
+    //         "1", "*", "3", "*", "1", "1", "3", "*", "3", "1", "0", "2", "*", "2", "0", "0", "1",
+    //         "1", "1", "0",
+    //     ];
 
-        let current_grid = mine_sweeper.mines_counting();
+    //     let current_grid = mine_sweeper.mines_counting();
 
-        let flattened_curent_grid: Vec<String> = current_grid
-        .grid
-        .iter()
-        .flatten()
-        .map(|element| match element {
-            Cell::Bomb => "*".to_string(),
-            Cell::Common(value) => value.to_string()
-        })
-        .collect();
-        assert_eq!(expected_grid, flattened_curent_grid)
-    }
+    //     let flattened_curent_grid: Vec<String> = current_grid
+    //         .grid
+    //         .iter()
+    //         .flatten()
+    //         .map(|element| match element {
+    //             Cell::Bomb => "*".to_string(),
+    //             Cell::Common(value) => value.to_string(),
+    //         })
+    //         .collect();
+    //     assert_eq!(expected_grid, flattened_curent_grid)
+    // }
 }

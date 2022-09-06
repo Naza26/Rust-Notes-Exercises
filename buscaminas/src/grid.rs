@@ -1,7 +1,7 @@
 use core::fmt;
 use std::{
     fs::File,
-    io::{BufRead, BufReader},
+    io::{self, BufRead, BufReader},
 };
 
 use crate::mine_sweeper::Cell;
@@ -9,7 +9,7 @@ use crate::mine_sweeper::Cell;
 /// A Grid is represented here.
 pub struct Grid {
     /// This grid represents the gameboard of the MineSweeper.
-    pub grid: Vec<Vec<Cell>>
+    pub grid: Vec<Vec<Cell>>,
 }
 
 impl Grid {
@@ -17,7 +17,7 @@ impl Grid {
     ///
     /// # Arguments
     ///
-    /// * `raw_grid` - A raw grid representing the MineSweeper 
+    /// * `raw_grid` - A raw grid representing the MineSweeper
     ///
     /// # Examples
     ///
@@ -44,28 +44,33 @@ impl Grid {
     /// use grid::Grid;
     /// let grid = Grid::from_path("buscaminas.txt");
     /// ```
-    pub fn from_path(path: &str) -> Self {
-        let file: File = match File::open(path) {
+    pub fn from_path(path: &str) -> Result<Self, io::Error> {
+        let file = File::open(path);
+        match file {
             Ok(file) => file,
-            Err(_) => panic!("File could not be opened correctly"), // Check if we can handle it differently, so far I removed the unwrap()
+            Err(error) => {
+                println!("{:?}", error);
+                return Err(error);
+            }
         };
-        let reader: BufReader<File> = BufReader::new(file);
+        let reader: BufReader<File> = BufReader::new(file?);
 
         let mut grid: Vec<Vec<Cell>> = Vec::new();
 
         for line in reader.lines() {
-            grid.push(line
-                .unwrap()
-                .into_bytes()
-                .iter()
-                .map(|value| match value {
-                    b'*' => Cell::Bomb,
-                    _ => Cell::Common(0)
-                })
-                .collect());
+            grid.push(
+                line.unwrap()
+                    .into_bytes()
+                    .iter()
+                    .map(|value| match value {
+                        b'*' => Cell::Bomb,
+                        _ => Cell::Common(0),
+                    })
+                    .collect(),
+            );
         }
 
-        Self { grid }
+        Ok(Self { grid })
     }
     /// Returns the height of the grid
     ///
@@ -122,11 +127,11 @@ impl Grid {
 
 impl fmt::Display for Grid {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for row in &self.grid{
+        for row in &self.grid {
             for cell in row {
                 let symbol = match cell {
                     Cell::Bomb => "*".to_string(),
-                    Cell::Common(close_bombs) => close_bombs.to_string()
+                    Cell::Common(close_bombs) => close_bombs.to_string(),
                 };
                 write!(f, "{}", symbol)?;
             }
