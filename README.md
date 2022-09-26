@@ -91,3 +91,6 @@ It is a strongly typed language.
         6. isize
    
    
+- Single Stream = Represents an open connection between the client and the server.
+- Connection = Is the name for the full request and response processin which a client connects to a server, the server generates a respone, and the server closes the connection.
+We will read from the TcpStream to see what the client sent and then write our response to the stream to send data back to the client.
